@@ -7,6 +7,17 @@ var url = require('url');
 var qs = require('querystring');
 
 var pdfjsLib = require('pdfjs-dist');
+var mammoth = require('mammoth');
+var hwp = require("./node-hwp");
+
+var options = {
+  styleMap: [
+      "u => em",
+      "p[style-name='Section Title'] => h1:fresh",
+      "p[style-name='Subsection Title'] => h2:fresh"
+  ],
+  includeDefaultStyleMap: false
+};
 
 function templateHTML(title, body){
   return `
@@ -126,6 +137,17 @@ var server = http.createServer(function(request,response){
             }, function (err) {
               console.error('Error: ' + err);
             });
+          } else if(extension == '.docx') {
+            mammoth.convertToHtml({path: __dirname + '/' + filePath}, options).then(result => {
+              let text = result.value.replace(/(<([^>]+)>)/ig,"\n");
+
+              console.log(text);
+            }).done();
+          } else if(extension == '.hwp') {
+            hwp.open(__dirname + '/' + filePath, function(err, doc) {
+              console.log(doc.toHML());
+            });
+            
           }
 
           var title = 'read - File';
