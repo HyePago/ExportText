@@ -29,7 +29,6 @@ function templateHTML(title, body){
   </head>
   <body>
     ${body}
-    <script>PDFJS.workerSrc = document.getElementById("pdf-js").getAttribute("src");</script>
   </body>
   </html>
   `;
@@ -145,7 +144,12 @@ var server = http.createServer(function(request,response){
             }).done();
           } else if(extension == '.hwp') {
             hwp.open(__dirname + '/' + filePath, function(err, doc) {
-              console.log(doc.toHML());
+              var str = doc.toHML().toString().substring(doc.toHML().indexOf("<CHAR>"), doc.toHML().lastIndexOf("</BODY>"));
+              var arr = str.toString().split("<CHAR>");
+
+              for(var i=0; i<arr.length; i++) {
+                console.log(arr[i].substring(0, arr[i].indexOf("</CHAR>")));
+              }
             });
             
           }
