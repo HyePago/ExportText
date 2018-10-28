@@ -29,6 +29,7 @@ function templateHTML(title, body){
   </head>
   <body>
     ${body}
+    <script>PDFJS.workerSrc = document.getElementById("pdf-js").getAttribute("src");</script>
   </body>
   </html>
   `;
@@ -99,18 +100,17 @@ var server = http.createServer(function(request,response){
         });
         fs.readdir('./data', function(error, filelist){
           if(extension == '.pdf') {
+            console.log('-- PDF TO TEXT --');
             pdfjsLib.getDocument(__dirname + '/' + filePath).then(function (doc) {
               var numPages = doc.numPages;
-              console.log('Total Number of Pages : ' + numPages);
-              console.log();
-            
+              // 전체 page 수 : numPages
               var lastPromise; // will be used to chain promises
               lastPromise = doc.getMetadata().then(function (data) {
               });
 
               var loadPage = function (pageNum) {
                 return doc.getPage(pageNum).then(function (page) {
-                  console.log('* page number : ' + pageNum);
+                  // 현재 page : pageNum
                   var viewport = page.getViewport(1.0 /* scale */);
                   return page.getTextContent().then(function (content) {
                     // Content contains lots of information about the text layout and
@@ -137,19 +137,24 @@ var server = http.createServer(function(request,response){
               console.error('Error: ' + err);
             });
           } else if(extension == '.docx') {
+            console.log('-- DOCX TO TEXT --');
             mammoth.convertToHtml({path: __dirname + '/' + filePath}, options).then(result => {
               let text = result.value.replace(/(<([^>]+)>)/ig,"\n");
 
               console.log(text);
+              console.log('-- End --');
             }).done();
           } else if(extension == '.hwp') {
+            console.log('-- HWP TO TEXT --');
             hwp.open(__dirname + '/' + filePath, function(err, doc) {
-              var str = doc.toHML().toString().substring(doc.toHML().indexOf("<CHAR>"), doc.toHML().lastIndexOf("</BODY>"));
-              var arr = str.toString().split("<CHAR>");
+              var str = doc.toHML().toString().substring(doc.toHML().indexOf("<CHAR>"), doc.toHML().lastIndexOf("</BODY>")).toString();
+              var arr = str.split("<CHAR>");
 
               for(var i=0; i<arr.length; i++) {
                 console.log(arr[i].substring(0, arr[i].indexOf("</CHAR>")));
+                console.log();
               }
+              console.log('-- End --');
             });
             
           }
